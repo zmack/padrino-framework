@@ -10,8 +10,7 @@ module Padrino
       #   form_for @user, '/register', :id => 'register' do |f| ... end
       #
       def form_for(object, url, settings={}, &block)
-        builder_class = configured_form_builder_class(settings.delete(:builder))
-        form_html = capture_html(builder_class.new(self, object, settings), &block)
+        form_html = capture_html(builder_instance(object, settings), &block)
         form_tag(url, settings) { form_html }
       end
 
@@ -25,8 +24,9 @@ module Padrino
       #   fields_for :assignment do |assigment| ... end
       #
       def fields_for(object, settings={}, &block)
-        builder_class = configured_form_builder_class(settings.delete(:builder))
-        fields_html = capture_html(builder_class.new(self, object, settings), &block)
+        instance = builder_instance(object, settings)
+        fields_html = capture_html(instance, &block) 
+        fields_html << instance.hidden_field(:id) if instance.send(:nested_object_id)
         concat_content fields_html
       end
 
@@ -372,6 +372,16 @@ module Padrino
           configured_builder = explicit_builder || default_builder || 'StandardFormBuilder'
           configured_builder = "Padrino::Helpers::FormBuilder::#{configured_builder}".constantize if configured_builder.is_a?(String)
           configured_builder
+        end
+        
+        ##
+        # Returns an initialized builder instance for the given object and settings
+        #
+        #   builder_instance(@account, :nested => { ... }) => <FormBuilder>
+        #
+        def builder_instance(object, settings={})
+           builder_class = configured_form_builder_class(settings.delete(:builder))
+           builder_class.new(self, object, settings)
         end
     end # FormHelpers
   end # Helpers

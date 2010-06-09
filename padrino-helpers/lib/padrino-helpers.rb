@@ -3,6 +3,7 @@ require 'active_support/core_ext/float/rounding'
 require 'active_support/option_merger'
 require 'cgi'
 require 'i18n'
+require 'enumerator'
 
 # On ActiveSupport < 3.0.0 is called misc
 begin
