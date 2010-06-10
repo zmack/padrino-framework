@@ -4,11 +4,11 @@ begin
 rescue LoadError
   require 'sinatra/tilt'
 end
-require 'padrino-core/support_lite'
+require 'padrino-core/support_lite' unless defined?(SupportLite)
 require 'mail'
 
-# Require respecting order our dependencies
-Dir[File.dirname(__FILE__) + '/padrino-mailer/**/*.rb'].each {|file| require file }
+# Require respecting order of our dependencies
+FileSet.glob_require('padrino-mailer/**/*.rb', __FILE__)
 
 module Padrino
   ##

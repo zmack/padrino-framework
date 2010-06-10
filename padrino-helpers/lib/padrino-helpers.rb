@@ -1,4 +1,4 @@
-require 'padrino-core/support_lite'
+require 'padrino-core/support_lite' unless defined?(SupportLite)
 require 'active_support/core_ext/float/rounding'
 require 'active_support/option_merger'
 require 'cgi'
@@ -12,7 +12,7 @@ rescue LoadError
   require 'active_support/core_ext/object/misc'
 end
 
-Dir[File.dirname(__FILE__) + '/padrino-helpers/**/*.rb'].each {|file| require file }
+FileSet.glob_require('padrino-helpers/**/*.rb', __FILE__)
 
 # Load our locales
 I18n.load_path += Dir["#{File.dirname(__FILE__)}/padrino-helpers/locale/*.yml"]
