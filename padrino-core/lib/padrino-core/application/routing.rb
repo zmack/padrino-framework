@@ -51,16 +51,37 @@ module Padrino
       #     get "/show/:id" do; ...; end
       #   end
       #
-      # You can supply default values:
-      #
-      #   controller :lang => :de do
-      #     get :index, :map => "/:lang" do; ...; end
-      #   end
-      #
       # and you can call directly these urls:
       #
       #   # => "/admin"
       #   # => "/admin/show/1"
+      #
+      # You can supply provides to all controller routes:
+      #
+      #   controller :provides => [:html, :xml, :json] do
+      #     get :index do; "respond to html, xml and json"; end
+      #     post :index do; "respond to html, xml and json"; end
+      #     get :foo do; "respond to html, xml and json"; end
+      #   end
+      #
+      # You can specify parent resources in padrino with the :parent option on the controller:
+      #
+      #   controllers :product, :parent => :user do
+      #     get :index do
+      #       # url is generated as "/user/#{params[:user_id]}/product"
+      #       # url_for(:product, :index, :user_id => 5) => "/user/5/product"
+      #     end
+      #     get :show, :with => :id do
+      #       # url is generated as "/user/#{params[:user_id]}/product/show/#{params[:id]}"
+      #       # url_for(:product, :show, :user_id => 5, :id => 10) => "/user/5/product/show/10"
+      #     end
+      #   end
+      #
+      # You can supply default values:
+      #
+      #   controller :lang => :de do
+      #     get :index, :map => "/:lang" do; "params[:lang] == :de"; end
+      #   end
       #
       # In a controller before and after filters are scoped and didn't affect other controllers or main app.
       # In a controller layout are scoped and didn't affect others controllers and main app.
@@ -78,6 +99,7 @@ module Padrino
           # Controller defaults
           @_controller, original_controller = args, @_controller
           @_parents,    original_parent     = options.delete(:parent), @_parents
+          @_provides,   original_provides   = options.delete(:provides), @_provides
           @_defaults,   original_defaults   = options, @_defaults
 
           # Application defaults
@@ -93,7 +115,8 @@ module Padrino
           @layout         = original_layout
 
           # Controller defaults
-          @_controller, @_parents, @_defaults = original_controller, original_parent, original_defaults
+          @_controller, @_parents = original_controller, original_parent
+          @_defaults, @_provides  = original_defaults, original_provides
         else
           include(*args) if extensions.any?
         end
@@ -169,14 +192,16 @@ module Padrino
         #   get :show, :with => :id, :parent => :user     # => "/user/:user_id/show/:id"
         #   get :show, :with => :id                       # => "/show/:id"
         #   get :show, :with => [:id, :name]              # => "/show/:id/:name"
-        #   get :list, :provides => :js                 # => "/list.{:format,js)"
-        #   get :list, :provides => :any                # => "/list(.:format)"
-        #   get :list, :provides => [:js, :json]        # => "/list.{!format,js|json}"
-        #   get :list, :provides => [:html, :js, :json] # => "/list(.{!format,js|json})"
+        #   get :list, :provides => :js                   # => "/list.{:format,js)"
+        #   get :list, :provides => :any                  # => "/list(.:format)"
+        #   get :list, :provides => [:js, :json]          # => "/list.{!format,js|json}"
+        #   get :list, :provides => [:html, :js, :json]   # => "/list(.{!format,js|json})"
         #
         def route(verb, path, options={}, &block)
           # Do padrino parsing. We dup options so we can build HEAD request correctly
-          path, name, options = *parse_route(path, options.dup, verb)
+          route_options = options.dup
+          route_options[:provides] = @_provides if @_provides
+          path, name, options = *parse_route(path, route_options, verb)
 
           # Sinatra defaults
           define_method "#{verb} #{path}", &block
@@ -252,8 +277,7 @@ module Padrino
               path = process_path_for_with_params(path, with_params)
             end
 
-            # Now we need to parse our provides with :respond_to backward compatibility
-            options[:provides] ||= options.delete(:respond_to)
+            # Now we need to parse our provides
             options.delete(:provides) if options[:provides].nil?
 
             if format_params = options[:provides]
@@ -324,9 +348,9 @@ module Padrino
         # Allow paths for the given request head or request format
         #
         def provides(*types)
-          mime_types = types.map{ |t| mime_type(t) }
+          mime_types = types.map { |t| mime_type(t) }
 
-          condition {
+          condition do
             matching_types = (request.accept.map { |a| a.split(";")[0].strip } & mime_types)
             request.path_info =~ /\.([^\.\/]+)$/
             url_format = $1.to_sym if $1
@@ -347,9 +371,8 @@ module Padrino
             end
 
             matched_format
-          }
+          end
         end
-        alias :respond_to :provides
     end
 
     module InstanceMethods
