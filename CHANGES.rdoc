@@ -2,10 +2,15 @@
 
 == 0.9.11 (Unreleased)
 
+* Fixed provides with IE
+* DM 1.0 and AR Tasks compat
+* Fixed DM 1.0 rake tasks
 * Dropped support of :respond_to in favor of :provides
 * Added provides in controller level App.controller :provides => [:json, :xml]
 * Added compatibility with AS 3.0
 * Fixed compatibility with DM 1.0
+* Improves dependencies in a Gemfile and autoinjected into gemspecs
+* Allow models to be generated in subapps with --app flag
 * Added bundler support also for testing [Thanks to Ryanfitz]
 * Updated I18n dependency to version > 0.4.0
 * Padrino now uses http_router instead of usher to handle url routing
@@ -51,6 +56,7 @@
 * Adds support for '--adapter' option which specifies what SQL adapter to use(for AR, Datamapper, Sequel)
 * Fixed escaping of javascript [Thanks to Ryan Fitzgerald]
 * Adds dojo.js as script component
+* Adds compass component for stylesheets in project generator [Thanks to Ryan Fitzgerald]
 
 == 0.9.10
 
