@@ -413,6 +413,17 @@ class TestFormBuilder < Test::Unit::TestCase
       assert_has_tag('select option', :value => 'California', :selected => 'selected') { actual_html }
     end
 
+    should "display correct select html with selected items" do
+      @user.stubs(:pickles => ['foo', 'bar'])
+      actual_html = standard_builder.select(
+        :pickles, :options => [ ['Foo', 'foo'], ['Bar', 'bar'], ['Baz', 'baz'], ['Bar Buz', 'bar buz'] ]
+      )
+      assert_has_tag('option', :value => 'foo', :content => 'Foo', :selected => 'selected')  { actual_html }
+      assert_has_tag('option', :value => 'bar', :content => 'Bar', :selected => 'selected')  { actual_html }
+      assert_has_tag('option', :value => 'baz', :content => 'Baz')  { actual_html }
+      assert_has_tag('option', :value => 'bar buz', :content => 'Bar Buz')  { actual_html }
+    end
+
     should "display correct select html with include_blank" do
       actual_html = standard_builder.select(:state, :options => ['California', 'Texas', 'Wyoming'], :include_blank => true)
       assert_has_tag('select', :id => 'user_state', :name => 'user[state]') { actual_html }
