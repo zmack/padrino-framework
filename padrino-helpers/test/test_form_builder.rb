@@ -413,7 +413,16 @@ class TestFormBuilder < Test::Unit::TestCase
       assert_has_tag('select option', :value => 'California', :selected => 'selected') { actual_html }
     end
 
-    should "display correct select html with selected items" do
+    should "display correct select html with selected item if it matches full value" do
+      @user.stubs(:state => 'Cali')
+      actual_html = standard_builder.select(:state, :options => ['Cali', 'California', 'Texas', 'Wyoming'])
+      assert_has_tag('select', :id => 'user_state', :name => 'user[state]') { actual_html }
+      assert_has_tag('select option', :selected => 'selected', :count => 1) { actual_html }
+      assert_has_tag('select option', :value => 'Cali', :selected => 'selected') { actual_html }
+      assert_has_tag('select option', :value => 'California') { actual_html }
+    end
+
+    should "display correct select html with multiple selected items" do
       @user.stubs(:pickles => ['foo', 'bar'])
       actual_html = standard_builder.select(
         :pickles, :options => [ ['Foo', 'foo'], ['Bar', 'bar'], ['Baz', 'baz'], ['Bar Buz', 'bar buz'] ]
