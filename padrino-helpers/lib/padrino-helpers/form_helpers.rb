@@ -377,7 +377,7 @@ module Padrino
 
         
         #
-        # Returns whether the option
+        # Returns whether the option should be selected or not
         #
         def option_is_selected?(value, caption, selected_value)
           if selected_value.is_a? Array
